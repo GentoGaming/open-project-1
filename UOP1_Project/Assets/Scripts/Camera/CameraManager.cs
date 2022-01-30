@@ -10,8 +10,8 @@ public class CameraManager : MonoBehaviour
 	public CinemachineFreeLook freeLookVCam;
 	public CinemachineImpulseSource impulseSource;
 	private bool _isRMBPressed;
-
-	[SerializeField][Range(.5f, 3f)] private float _speedMultiplier = 1f; //TODO: make this modifiable in the game settings											
+	[SerializeField]private bool bPressToRotate = false;
+	[SerializeField][Range(.1f, 3f)] private float _speedMultiplier = 1f; //TODO: make this modifiable in the game settings
 	[SerializeField] private TransformAnchor _cameraTransformAnchor = default;
 	[SerializeField] private TransformAnchor _protagonistTransformAnchor = default;
 
@@ -24,8 +24,15 @@ public class CameraManager : MonoBehaviour
 	private void OnEnable()
 	{
 		inputReader.CameraMoveEvent += OnCameraMove;
-		inputReader.EnableMouseControlCameraEvent += OnEnableMouseControlCamera;
-		inputReader.DisableMouseControlCameraEvent += OnDisableMouseControlCamera;
+		if (bPressToRotate)
+		{
+			inputReader.EnableMouseControlCameraEvent += OnEnableMouseControlCamera;
+			inputReader.DisableMouseControlCameraEvent += OnDisableMouseControlCamera;
+		}
+		else
+		{
+			OnEnableMouseControlCamera();
+		}
 
 		_protagonistTransformAnchor.OnAnchorProvided += SetupProtagonistVirtualCamera;
 		_camShakeEvent.OnEventRaised += impulseSource.GenerateImpulse;
@@ -58,8 +65,7 @@ public class CameraManager : MonoBehaviour
 
 		Cursor.lockState = CursorLockMode.Locked;
 		Cursor.visible = false;
-
-		StartCoroutine(DisableMouseControlForFrame());
+		if(bPressToRotate) StartCoroutine(DisableMouseControlForFrame());
 	}
 
 	IEnumerator DisableMouseControlForFrame()
